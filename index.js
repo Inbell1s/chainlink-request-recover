@@ -130,7 +130,6 @@ async function findRequests() {
             console.log('Something wrong with this request, we cannot fulfill it', requestEvent)
           }
         }
-        await fs.writeFile(`./storage/unfullfilled_requests`, to, () => { })
       }
     }
     processedBlocks++
