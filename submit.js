@@ -4,7 +4,7 @@ const { numberToHex, toHex, toWei } = require('web3-utils')
 const fs = require('fs')
 const ORACLE_ABI = require('./oracle.abi.json')
 const createLogger = require('./utils/createLogger');
-const logger = createLogger("chainlink-request-recover");
+const logger = createLogger("fulfill-missing-requests");
 
 const {
   ORACLE_ADDRESS,

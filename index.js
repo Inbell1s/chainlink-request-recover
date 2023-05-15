@@ -7,7 +7,7 @@ const ORACLE_ABI = require('./oracle.abi.json')
 const Web3Utils = require('web3-utils')
 const { hexToUtf8 } = require('web3-utils');
 const createLogger = require('./utils/createLogger');
-const logger = createLogger("chainlink-request-recover");
+const logger = createLogger("find-missing-requests");
 
 const FAKE_RESPONSE = "0x000000000000000000000000000000000000000000000000000000c2797eab80"
 
@@ -121,7 +121,6 @@ async function findRequests() {
   from = Web3Utils.toHex(i);
   to = '0x' + (Number(from) + step).toString(16);
   const percentage = (processedBlocks / totalBlocks) * 100;
-
   logger.log(`Processing blocks: ${i} - ${Number(to)} | Progress: ${(i - START_BLOCK)}/${(endBlock - START_BLOCK)} (${percentage.toFixed(3)}%) | ETA: ${remainingDays} days, ${remainingHours} hours, ${remainingMin} minutes, ${remainingSecs} seconds`);
   
   const requestEvents = await getOracleRequestEvents(from, to);
@@ -147,7 +146,7 @@ async function findRequests() {
         }
       }
     }
-    processedBlocks++
+    processedBlocks = Number(to) - START_BLOCK
   }
 }
 
