@@ -17,7 +17,6 @@ Prepare `.env` file
 | RPC_URL | Ethereum HTTP node RPC url |
 | BLOCK_INTERVAL | How many blocks to query in for loop |
 | PRIVATE_KEY | Private key (without 0x) to send a request to your Oracle contract - only needed if you wish to fulfill requests |
-| GAS_PRICE | Gas price to use for sending txs in gwei |
 
 
 2. `npm i`

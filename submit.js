@@ -9,7 +9,6 @@ const logger = createLogger("chainlink-request-recover");
 const {
   ORACLE_ADDRESS,
   PRIVATE_KEY,
-  GAS_PRICE,
   RPC_URL,
   GAS_TOKEN
 } = process.env
