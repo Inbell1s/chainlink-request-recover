@@ -108,22 +108,22 @@ async function findRequests() {
   let processedBlocks = 0;
   for (let i = startBlock; i < endBlock; i += step) {
     let currentTime = new Date().getTime();
-  let elapsedSec = (currentTime - startTime) / 1000;
-  let blocksPerSec = processedBlocks / elapsedSec;
-  let remainingBlocks = endBlock - i;
-  let remainingSec = remainingBlocks / blocksPerSec;
+    let elapsedSec = (currentTime - startTime) / 1000;
+    let blocksPerSec = processedBlocks / elapsedSec;
+    let remainingBlocks = endBlock - i;
+    let remainingSec = remainingBlocks / blocksPerSec;
 
-  let remainingDays = Math.floor(remainingSec / 86400);
-  let remainingHours = Math.floor((remainingSec % 86400) / 3600);
-  let remainingMin = Math.floor((remainingSec % 3600) / 60);
-  let remainingSecs = Math.floor(remainingSec % 60);
+    let remainingDays = Math.floor(remainingSec / 86400);
+    let remainingHours = Math.floor((remainingSec % 86400) / 3600);
+    let remainingMin = Math.floor((remainingSec % 3600) / 60);
+    let remainingSecs = Math.floor(remainingSec % 60);
 
-  from = Web3Utils.toHex(i);
-  to = '0x' + (Number(from) + step).toString(16);
-  const percentage = (processedBlocks / totalBlocks) * 100;
-  logger.log(`Processing blocks: ${i} - ${Number(to)} | Progress: ${(i - START_BLOCK)}/${(endBlock - START_BLOCK)} (${percentage.toFixed(3)}%) | ETA: ${remainingDays} days, ${remainingHours} hours, ${remainingMin} minutes, ${remainingSecs} seconds`);
-  
-  const requestEvents = await getOracleRequestEvents(from, to);
+    from = Web3Utils.toHex(i);
+    to = '0x' + (Number(from) + step).toString(16);
+    const percentage = (processedBlocks / totalBlocks) * 100;
+    logger.log(`Processing blocks: ${i} - ${Number(to)} | Progress: ${(i - START_BLOCK)}/${(endBlock - START_BLOCK)} (${percentage.toFixed(3)}%) | ETA: ${remainingDays} days, ${remainingHours} hours, ${remainingMin} minutes, ${remainingSecs} seconds`);
+
+    const requestEvents = await getOracleRequestEvents(from, to);
     if (requestEvents.length > 0) {
       logger.log(`We got ${requestEvents.length} request events. Start processing...`)
       for (let requestEvent of requestEvents) {
@@ -138,7 +138,7 @@ async function findRequests() {
           })
           if (succesfullFulfill) {
             let writeData = tx
-            writeData["jobId"] = jobId 
+            writeData["jobId"] = jobId
             await fs.appendFile(`./storage/unfulfilled_requests`, JSON.stringify(writeData) + ',\n', () => { })
           } else {
             logger.log('Something wrong with this request, we cannot fulfill it', requestEvent)
@@ -148,6 +148,7 @@ async function findRequests() {
     }
     processedBlocks = Number(to) - START_BLOCK
   }
+  logger.log(`Finished running find-missing-requests.`)
 }
 
 findRequests();
