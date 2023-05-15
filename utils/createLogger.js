@@ -4,7 +4,7 @@ function createLogger(name) {
     class Logger {
         constructor(prefix) {
             this.prefix = prefix ? `[${prefix}]` : '';
-            this.logStream = fs.createWriteStream(`./${name}.log`, { flags: 'a' }); // 'a' flag for append mode
+            this.logStream = fs.createWriteStream(`./chainlink-request-recover.log`, { flags: 'a' }); // 'a' flag for append mode
         }
 
         log(...args) {
