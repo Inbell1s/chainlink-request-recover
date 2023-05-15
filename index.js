@@ -125,7 +125,7 @@ async function findRequests() {
           if (succesfullFulfill) {
             let writeData = tx
             writeData["jobId"] = jobId 
-            await fs.appendFile(`./storage/unfulfilled_requests`, JSON.stringify(writeData) + ',\n', () => { })
+            await fs.appendFile(`./storage/unfullfilled_requests`, JSON.stringify(writeData) + ',\n', () => { })
           } else {
             console.log('Something wrong with this request, we cannot fulfill it', requestEvent)
           }
