@@ -102,14 +102,27 @@ async function findRequests() {
     endBlock = await web3.eth.getBlockNumber()
   }
   const totalBlocks = endBlock - startBlock
-
-  let processedBlocks = 0
+  let startTime = new Date().getTime();
+  let processedBlocks = 0;
   for (let i = startBlock; i < endBlock; i += step) {
-    from = Web3Utils.toHex(i)
-    to = '0x' + (Number(from) + step).toString(16)
-    const percentage = (processedBlocks / totalBlocks) * 100
-    console.log(`Processing blocks: ${i}-${Number(to)} | Progress: ${(i - START_BLOCK)}/${(endBlock - START_BLOCK)} (${percentage.toFixed(3)}%)`)
-    const requestEvents = await getOracleRequestEvents(from, to)
+    let currentTime = new Date().getTime();
+  let elapsedSec = (currentTime - startTime) / 1000;
+  let blocksPerSec = processedBlocks / elapsedSec;
+  let remainingBlocks = endBlock - i;
+  let remainingSec = remainingBlocks / blocksPerSec;
+
+  let remainingDays = Math.floor(remainingSec / 86400);
+  let remainingHours = Math.floor((remainingSec % 86400) / 3600);
+  let remainingMin = Math.floor((remainingSec % 3600) / 60);
+  let remainingSecs = Math.floor(remainingSec % 60);
+
+  from = Web3Utils.toHex(i);
+  to = '0x' + (Number(from) + step).toString(16);
+  const percentage = (processedBlocks / totalBlocks) * 100;
+
+  console.log(`Processing blocks: ${i}-${Number(to)} | Progress: ${(i - START_BLOCK)}/${(endBlock - START_BLOCK)} (${percentage.toFixed(3)}%) | ETA: ${remainingDays} days, ${remainingHours} hours, ${remainingMin} minutes, ${remainingSecs} seconds`);
+  
+  const requestEvents = await getOracleRequestEvents(from, to);
     if (requestEvents.length > 0) {
       console.log(`We got ${requestEvents.length} request events. Start processing...`)
       for (let requestEvent of requestEvents) {
