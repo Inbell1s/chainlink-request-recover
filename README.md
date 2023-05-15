@@ -12,9 +12,8 @@ Prepare `.env` file
 | --- | --- |
 | ORACLE_ADDRESS | Oracle contract address |
 | START_BLOCK | When to start collecting events |
-| JOB_ID | Job id to look up |
+| END_BLOCK | When to end collecting events (use 'latest' to set to latest known block) |
 | NODE_ADDRESS | Whitelisted key on your Oracle address for validation |
-| FAKE_RESPONSE | Node operator response for unfullfiled job |
 | RPC_URL | Ethereum HTTP node RPC url |
 | BLOCK_INTERVAL | How many blocks to query in for loop |
 | PRIVATE_KEY | Private key (without 0x) to send a request to your Oracle contract - only needed if you wish to fulfill requests |

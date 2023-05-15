@@ -122,7 +122,7 @@ async function findRequests() {
   to = '0x' + (Number(from) + step).toString(16);
   const percentage = (processedBlocks / totalBlocks) * 100;
 
-  logger.log(`Processing blocks: ${i}-${Number(to)} | Progress: ${(i - START_BLOCK)}/${(endBlock - START_BLOCK)} (${percentage.toFixed(3)}%) | ETA: ${remainingDays} days, ${remainingHours} hours, ${remainingMin} minutes, ${remainingSecs} seconds`);
+  logger.log(`Processing blocks: ${i} - ${Number(to)} | Progress: ${(i - START_BLOCK)}/${(endBlock - START_BLOCK)} (${percentage.toFixed(3)}%) | ETA: ${remainingDays} days, ${remainingHours} hours, ${remainingMin} minutes, ${remainingSecs} seconds`);
   
   const requestEvents = await getOracleRequestEvents(from, to);
     if (requestEvents.length > 0) {
