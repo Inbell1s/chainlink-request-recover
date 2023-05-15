@@ -55,7 +55,7 @@ async function getOracleRequestEvents(fromBlock, toBlock) {
       event.topics);
     data.transactionHash = event.transactionHash
     data.blockNumber = event.blockNumber
-    data.jobId = hexToUtf8(event.topics[1])
+    data.jobId = event.topics[1]
     // console.log(data.jobId)
     events.push(data)
   })
@@ -115,7 +115,7 @@ async function findRequests() {
       for (let requestEvent of requestEvents) {
         const isFulfilled = await isFulfilledRequest(requestEvent.requestId)
         if (!isFulfilled) {
-          console.log(`Request without fulfillment found for job: ${requestEvent.jobId}! Blocknumber is ` + Number(requestEvent.blockNumber))
+          console.log(`Request without fulfillment found for job: ${hexToUtf8(requestEvent.jobId)}! Blocknumber is ` + Number(requestEvent.blockNumber))
           const { requestId, payment, callbackAddr, callbackFunctionId, cancelExpiration, jobId } = requestEvent
           const data = FAKE_RESPONSE
           const tx = [requestId, payment, callbackAddr, callbackFunctionId, cancelExpiration, data]
@@ -130,7 +130,6 @@ async function findRequests() {
             console.log('Something wrong with this request, we cannot fulfill it', requestEvent)
           }
         }
-        // Save file specific to the jobId
         await fs.writeFile(`./storage/unfullfilled_requests`, to, () => { })
       }
     }
