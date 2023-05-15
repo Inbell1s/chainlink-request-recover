@@ -53,6 +53,8 @@ nonce 1866
 A new successfully sent tx 0x0a3ee324e506bdf34d6cba8f9a59f25794f5ec03a07ad12ab37255d4caf40aad
 ```
 
+Unprofitable requests will be filtered, skipped and saved to: /storage/unprofitable_requests
+
 ## Run with Docker
 1. Edit env variables in `./docker-compose.yml`
 2. `docker-compose up -d chainlink-request-recover-eth-usd` it will store found requests in `/data/dmakers` folder
