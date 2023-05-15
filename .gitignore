@@ -4,3 +4,4 @@ txs
 unfulfilled_requests
 /storage/*
 !/storage/.gitkeep
+chainlink-request-recover.log

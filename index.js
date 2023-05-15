@@ -6,6 +6,8 @@ const fs = require('fs')
 const ORACLE_ABI = require('./oracle.abi.json')
 const Web3Utils = require('web3-utils')
 const { hexToUtf8 } = require('web3-utils');
+const createLogger = require('./utils/createLogger');
+const logger = createLogger("chainlink-request-recover");
 
 const FAKE_RESPONSE = "0x000000000000000000000000000000000000000000000000000000c2797eab80"
 
@@ -56,7 +58,7 @@ async function getOracleRequestEvents(fromBlock, toBlock) {
     data.transactionHash = event.transactionHash
     data.blockNumber = event.blockNumber
     data.jobId = event.topics[1]
-    // console.log(data.jobId)
+    // logger.log(data.jobId)
     events.push(data)
   })
   return events
@@ -120,15 +122,15 @@ async function findRequests() {
   to = '0x' + (Number(from) + step).toString(16);
   const percentage = (processedBlocks / totalBlocks) * 100;
 
-  console.log(`Processing blocks: ${i}-${Number(to)} | Progress: ${(i - START_BLOCK)}/${(endBlock - START_BLOCK)} (${percentage.toFixed(3)}%) | ETA: ${remainingDays} days, ${remainingHours} hours, ${remainingMin} minutes, ${remainingSecs} seconds`);
+  logger.log(`Processing blocks: ${i}-${Number(to)} | Progress: ${(i - START_BLOCK)}/${(endBlock - START_BLOCK)} (${percentage.toFixed(3)}%) | ETA: ${remainingDays} days, ${remainingHours} hours, ${remainingMin} minutes, ${remainingSecs} seconds`);
   
   const requestEvents = await getOracleRequestEvents(from, to);
     if (requestEvents.length > 0) {
-      console.log(`We got ${requestEvents.length} request events. Start processing...`)
+      logger.log(`We got ${requestEvents.length} request events. Start processing...`)
       for (let requestEvent of requestEvents) {
         const isFulfilled = await isFulfilledRequest(requestEvent.requestId)
         if (!isFulfilled) {
-          console.log(`Request without fulfillment found for job: ${hexToUtf8(requestEvent.jobId)}! Blocknumber is ` + Number(requestEvent.blockNumber))
+          logger.log(`Request without fulfillment found for job: ${hexToUtf8(requestEvent.jobId)}! Blocknumber is ` + Number(requestEvent.blockNumber))
           const { requestId, payment, callbackAddr, callbackFunctionId, cancelExpiration, jobId } = requestEvent
           const data = FAKE_RESPONSE
           const tx = [requestId, payment, callbackAddr, callbackFunctionId, cancelExpiration, data]
@@ -140,7 +142,7 @@ async function findRequests() {
             writeData["jobId"] = jobId 
             await fs.appendFile(`./storage/unfullfilled_requests`, JSON.stringify(writeData) + ',\n', () => { })
           } else {
-            console.log('Something wrong with this request, we cannot fulfill it', requestEvent)
+            logger.log('Something wrong with this request, we cannot fulfill it', requestEvent)
           }
         }
       }
