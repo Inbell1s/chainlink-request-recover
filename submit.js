@@ -35,9 +35,6 @@ async function main() {
   const lines = fileContent.split('\n').filter(Boolean);
   const txs = lines.map(line => JSON.parse(line.trim().slice(0, -1)));
 
-  let transactions = [];
-  let nonce = await web3.eth.getTransactionCount(account.address);
-
   for (let i = 0; i < txs.length; i++) {
     const args = txs[i];
     const data = oracle.methods.fulfillOracleRequest(...args).encodeABI();
@@ -47,14 +44,18 @@ async function main() {
       const gas = await oracle.methods.fulfillOracleRequest(...args).estimateGas();
       const paymentTx = ((args[1] / 10 ** 18) * linkPrice)
       costTx = (((gas * gasPrice) / 10 ** 18) * gasTokenPrice)
-
+      // logger.log("Payment: $" + paymentTx)
+      // logger.log("Cost: $" + costTx)
       if (costTx > paymentTx) {
         logger.log(`Won't fulfill the request because it's unprofitable. Saving to file.`)
+        // save to unprofitable_requests
         const unprofitableContent = JSON.stringify(args) + ',\n';
         fs.appendFileSync('./storage/unprofitable_requests', unprofitableContent);
         continue;
       }
 
+      let nonce = await web3.eth.getTransactionCount(account.address);
+      logger.log('nonce', nonce);
       const tx = {
         from: web3.eth.defaultAccount,
         value: '0x00',
@@ -67,27 +68,20 @@ async function main() {
       };
 
       let signedTx = await web3.eth.accounts.signTransaction(tx, PRIVATE_KEY);
-      transactions.push(signedTx.rawTransaction);
+      let result;
 
-      if (transactions.length === 5 || i === txs.length - 1) {
-        try {
-          // Batch send the transactions
-          logger.log(`Sending batch of transactions.`)
-          let transactionPromises = transactions.map(tx => web3.eth.sendSignedTransaction(tx));
-
-          try {
-            let results = await Promise.all(transactionPromises);
-            results.forEach(result => logger.log(`A new successfully sent tx ${result.transactionHash}`));
-          } catch (e) {
-            console.error('Error sending batch of transactions', e);
-          }
-
-          // Clear the transactions array
-          transactions = [];
-        } catch (e) {
-          console.error('Error sending batch of transactions', e);
-        }
+      if (i % 50 === 0) {
+        result = await web3.eth.sendSignedTransaction(signedTx.rawTransaction);
+        logger.log(`A new successfully sent tx ${result.transactionHash}`);
+      } else {
+        result = web3.eth.sendSignedTransaction(signedTx.rawTransaction);
+        result.once('transactionHash', function (txHash) {
+          logger.log(`A new successfully sent tx ${txHash}`);
+        }).on('error', async function (e) {
+          logger.log('error', e.message);
+        });
       }
+
       nonce++;
     } catch (e) {
       console.error('skipping tx', txs[i], e);
