@@ -10,6 +10,7 @@
   "author": "Mihael Dorn (https://dmakers.org)",
   "license": "MIT",
   "dependencies": {
+    "@chainlink/external-adapter": "^0.2.6",
     "dotenv": "^8.2.0",
     "node-fetch": "^2.6.0",
     "web3": "^1.2.5-rc.0"

@@ -3,12 +3,15 @@ const Web3 = require('web3')
 const { numberToHex, toHex, toWei } = require('web3-utils')
 const fs = require('fs')
 const ORACLE_ABI = require('./oracle.abi.json')
+const createLogger = require('./utils/createLogger');
+const logger = createLogger("chainlink-request-recover");
 
 const {
   ORACLE_ADDRESS,
   PRIVATE_KEY,
   GAS_PRICE,
-  RPC_URL
+  RPC_URL,
+  GAS_TOKEN
 } = process.env
 
 const web3 = new Web3(RPC_URL, null, { transactionConfirmationBlocks: 1 })
@@ -18,44 +21,75 @@ web3.eth.defaultAccount = account.address
 const oracle = new web3.eth.Contract(ORACLE_ABI, ORACLE_ADDRESS)
 
 async function main() {
-  const file = '[' + fs.readFileSync('./storage/unfulfilled_requests').slice(0, -2) + ']'
-  const txs = JSON.parse(file)
-  let nonce = await web3.eth.getTransactionCount(account.address)
-  console.log('nonce', nonce)
-  for(let i = 0; i < txs.length; i++) {
-    const args = txs[i]
-    const data = oracle.methods.fulfillOracleRequest(...args).encodeABI()
+  const createRequest = require('./utils/priceData/index').createRequest
+  linkPrice = await createRequest({ "data": { "from": "link", "to": "usd" } }, (status, result) => {
+    const price = result.data.result
+    return price
+  })
+  gasTokenPrice = await createRequest({ "data": { "from": GAS_TOKEN, "to": "usd" } }, (status, result) => {
+    const price = result.data.result
+    return price
+  })
+  logger.log(`Current LINK price: $${linkPrice}`)
+  logger.log(`Current ${GAS_TOKEN} price: $${gasTokenPrice}`)
+  const fileContent = fs.readFileSync('./storage/unfulfilled_requests', 'utf8');
+  const lines = fileContent.split('\n').filter(Boolean);
+  const txs = lines.map(line => JSON.parse(line.trim().slice(0, -1)));
+
+  for (let i = 0; i < txs.length; i++) {
+    const args = txs[i];
+    const data = oracle.methods.fulfillOracleRequest(...args).encodeABI();
+
     try {
-      const gas = await oracle.methods.fulfillOracleRequest(...args).estimateGas()
+      const gasPrice = await web3.eth.getGasPrice();
+      const gas = await oracle.methods.fulfillOracleRequest(...args).estimateGas();
+      const paymentTx = ((args[1] / 10 ** 18) * linkPrice)
+      costTx = (((gas * gasPrice) / 10 ** 18) * gasTokenPrice)
+      // logger.log("Payment: $" + paymentTx)
+      // logger.log("Cost: $" + costTx)
+      if (costTx > paymentTx) {
+        logger.log(`Won't fulfill the request because it's unprofitable. Saving to file.`)
+        // save to unprofitable_requests
+        const unprofitableContent = JSON.stringify(args) + ',\n';
+        fs.appendFileSync('./storage/unprofitable_requests', unprofitableContent);
+        continue;
+      }
+
+      let nonce = await web3.eth.getTransactionCount(account.address);
+      logger.log('nonce', nonce);
       const tx = {
         from: web3.eth.defaultAccount,
         value: '0x00',
-        gas: numberToHex(500000), // please make sure its above `MINIMUM_CONSUMER_GAS_LIMIT` in your Oracle.sol
-        gasPrice: toHex(toWei(GAS_PRICE, 'gwei')),
+        gas: numberToHex(gas),
+        gasPrice: toHex(gasPrice),
         to: oracle._address,
         netId: 1,
         data,
         nonce
-      }
-      let signedTx = await web3.eth.accounts.signTransaction(tx, PRIVATE_KEY)
-      let result
+      };
+
+      let signedTx = await web3.eth.accounts.signTransaction(tx, PRIVATE_KEY);
+      let result;
+
       if (i % 50 === 0) {
-        result = await web3.eth.sendSignedTransaction(signedTx.rawTransaction)
-        console.log(`A new successfully sent tx ${result.transactionHash}`)
+        result = await web3.eth.sendSignedTransaction(signedTx.rawTransaction);
+        logger.log(`A new successfully sent tx ${result.transactionHash}`);
       } else {
-        result = web3.eth.sendSignedTransaction(signedTx.rawTransaction)
-        result.once('transactionHash', function(txHash){
-          console.log(`A new successfully sent tx ${txHash}`)
-        }).on('error', async function(e){
-          console.log('error', e.message)
-        })
+        result = web3.eth.sendSignedTransaction(signedTx.rawTransaction);
+        result.once('transactionHash', function (txHash) {
+          logger.log(`A new successfully sent tx ${txHash}`);
+        }).on('error', async function (e) {
+          logger.log('error', e.message);
+        });
       }
-      nonce++
-    } catch(e) {
-      console.error('skipping tx ', txs[i], e)
-      continue
+
+      nonce++;
+    } catch (e) {
+      console.error('skipping tx', txs[i], e);
+      continue;
     }
   }
 }
+
 
 main()
