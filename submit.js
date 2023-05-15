@@ -70,19 +70,13 @@ async function main() {
       let signedTx = await web3.eth.accounts.signTransaction(tx, PRIVATE_KEY);
       let result;
 
-      if (i % 50 === 0) {
-        result = await web3.eth.sendSignedTransaction(signedTx.rawTransaction);
+      try {
+        let result = await web3.eth.sendSignedTransaction(signedTx.rawTransaction);
         logger.log(`A new successfully sent tx ${result.transactionHash}`);
-      } else {
-        result = web3.eth.sendSignedTransaction(signedTx.rawTransaction);
-        result.once('transactionHash', function (txHash) {
-          logger.log(`A new successfully sent tx ${txHash}`);
-        }).on('error', async function (e) {
-          logger.log('error', e.message);
-        });
+        nonce++;
+      } catch (e) {
+        console.error('skipping tx', txs[i], e);
       }
-
-      nonce++;
     } catch (e) {
       console.error('skipping tx', txs[i], e);
       continue;
