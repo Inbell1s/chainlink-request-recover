@@ -2,3 +2,5 @@ node_modules
 txs
 .env
 unfulfilled_requests
+/storage/*
+!/storage/.gitkeep
