@@ -103,13 +103,15 @@ async function findRequests() {
     endBlock = await web3.eth.getBlockNumber()
   }
   const totalBlocks = endBlock - startBlock
+  const totalJobs = JOB_IDs.length
 
-  const jobs = JOB_IDs.map(async (JOB_ID) => {
+  for (let j = 0; j < JOB_IDs.length; j++) {
+    const JOB_ID = JOB_IDs[j]
     let processedBlocks = 0
     for (let i = startBlock; i < endBlock; i += step) {
       from = Web3Utils.toHex(i)
       to = '0x' + (Number(from) + step).toString(16)
-      const percentage = (processedBlocks / totalBlocks) * 100
+      const percentage = (((j + (processedBlocks / totalBlocks)) / totalJobs)) * 100
       console.log(`Processing blocks: ${i}-${Number(to)} for job ID: ${JOB_ID} | Progress: ${(i-START_BLOCK)}/${(endBlock-START_BLOCK)} (${percentage.toFixed(3)}%)`)
       const requestEvents = await getOracleRequestEvents(from, to, JOB_ID)
       if (requestEvents.length > 0) {
@@ -136,9 +138,7 @@ async function findRequests() {
       }
       processedBlocks++
     }
-  });
-
-  await Promise.all(jobs);
+  }
 }
 
 findRequests();
