@@ -43,7 +43,7 @@ async function main() {
 
     try {
       let gasPrice, paymentTx
-      if (i % 25 == 0) {
+      if (i % 25 == 0 || i == 0) {
         gasPrice = await web3.eth.getGasPrice();
         logger.log(`Progress: ${i}/${txs.length} (${((i / txs.length) * 100).toFixed(2)}%)`)
       }
