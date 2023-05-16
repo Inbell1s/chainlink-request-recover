@@ -65,7 +65,7 @@ async function main() {
         from: web3.eth.defaultAccount,
         value: '0x00',
         gas: numberToHex(gas),
-        gasPrice: toHex((gasPrice*1.1)),
+        gasPrice: toHex((gasPrice*1.1).toFixed(0)),
         to: oracle._address,
         netId: 1,
         data,
