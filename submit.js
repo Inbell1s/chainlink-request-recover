@@ -35,14 +35,13 @@ async function main() {
   const lines = fileContent.split('\n').filter(Boolean);
   const txs = lines.map(line => JSON.parse(line.trim().slice(0, -1)));
   let gas, gasPrice
-  gas = await oracle.methods.fulfillOracleRequest(...txs[0]).estimateGas();
-
   for (let i = 0; i < txs.length; i++) {
     const args = txs[i];
     const data = oracle.methods.fulfillOracleRequest(...args).encodeABI();
 
     try {
       let paymentTx
+      gas = await oracle.methods.fulfillOracleRequest(...txs[0]).estimateGas();
       if (i % 25 == 0 || i == 0) {
         gasPrice = await web3.eth.getGasPrice();
         logger.log(`Progress: ${i}/${txs.length} (${((i / txs.length) * 100).toFixed(2)}%)`)
