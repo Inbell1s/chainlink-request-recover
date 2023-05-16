@@ -47,7 +47,7 @@ async function main() {
         gasPrice = await web3.eth.getGasPrice();
       }
       paymentTx = ((args[1] / 10 ** 18) * linkPrice)
-      costTx = (((gas * gasPrice) / 10 ** 18) * gasTokenPrice)
+      costTx = ((((gas * gasPrice) * 1.1) / 10 ** 18) * gasTokenPrice)
       logger.log("Payment: $" + paymentTx + " | Cost: $" + costTx)
       if (costTx > paymentTx) {
         logger.log(`Won't fulfill the request because it's unprofitable. Saving to file.`)
