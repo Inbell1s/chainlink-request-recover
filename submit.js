@@ -34,7 +34,7 @@ async function main() {
   const fileContent = fs.readFileSync('./storage/unfulfilled_requests', 'utf8');
   const lines = fileContent.split('\n').filter(Boolean);
   const txs = lines.map(line => JSON.parse(line.trim().slice(0, -1)));
-  let gas
+  let gas, gasPrice
   gas = await oracle.methods.fulfillOracleRequest(...txs[0]).estimateGas();
 
   for (let i = 0; i < txs.length; i++) {
@@ -42,7 +42,7 @@ async function main() {
     const data = oracle.methods.fulfillOracleRequest(...args).encodeABI();
 
     try {
-      let gasPrice, paymentTx
+      let paymentTx
       if (i % 25 == 0 || i == 0) {
         gasPrice = await web3.eth.getGasPrice();
         logger.log(`Progress: ${i}/${txs.length} (${((i / txs.length) * 100).toFixed(2)}%)`)
