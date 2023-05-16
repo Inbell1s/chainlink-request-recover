@@ -45,6 +45,7 @@ async function main() {
       let gasPrice, paymentTx
       if (i % 25 == 0) {
         gasPrice = await web3.eth.getGasPrice();
+        logger.log(`Progress: ${i}/${txs.length} (${((i / txs.length) * 100).toFixed(2)}%)`)
       }
       paymentTx = ((args[1] / 10 ** 18) * linkPrice)
       costTx = ((((gas * gasPrice) * 1.1) / 10 ** 18) * gasTokenPrice)
