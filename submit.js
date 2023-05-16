@@ -68,7 +68,7 @@ async function main() {
         from: web3.eth.defaultAccount,
         value: '0x00',
         gas: numberToHex(gas),
-        gasPrice: toHex((gasPrice*1.1).toFixed(0)),
+        gasPrice: toHex((gasPrice * 1.1).toFixed(0)),
         to: oracle._address,
         netId: 1,
         data,
@@ -79,20 +79,35 @@ async function main() {
       let result;
       logger.log(`Sent tx with hash: ${signedTx.transactionHash}, waiting for confirmation...`)
       try {
+        let signedTx = await web3.eth.accounts.signTransaction(tx, PRIVATE_KEY);
+        logger.log(`Sent tx with hash: ${signedTx.transactionHash}, waiting for confirmation...`)
         let result = await web3.eth.sendSignedTransaction(signedTx.rawTransaction);
         logger.log(`A new successfully sent tx ${result.transactionHash}`);
         const confirmedContent = JSON.stringify(args) + ',\n';
         fs.appendFileSync('./storage/fulfilled_requests', confirmedContent);
         nonce++;
       } catch (e) {
-        console.error('skipping tx', txs[i], e);
+        // Catch the exception thrown during sendSignedTransaction
+        try {
+          const receipt = await web3.eth.getTransactionReceipt(signedTx.transactionHash);
+          if (receipt) {
+            // The transaction was mined but may have failed.
+            console.error('Mined but failed tx', txs[i], e);
+            const confirmedContent = JSON.stringify(args) + ',\n';
+            fs.appendFileSync('./storage/fulfilled_requests', confirmedContent);
+          } else {
+            // The transaction was not mined.
+            console.error('skipping tx', txs[i], e);
+          }
+        } catch (receiptError) {
+          // The transaction was not mined.
+          console.error('skipping tx', txs[i], e);
+        }
       }
     } catch (e) {
-      console.error('skipping tx', txs[i], e);
-      continue;
+      logger.log('Error fulfilling request:', e);
     }
   }
 }
-
 
 main()
