@@ -78,6 +78,8 @@ async function main() {
       try {
         let result = await web3.eth.sendSignedTransaction(signedTx.rawTransaction);
         logger.log(`A new successfully sent tx ${result.transactionHash}`);
+        const confirmedContent = JSON.stringify(args) + ',\n';
+        fs.appendFileSync('./storage/fulfilled_requests', confirmedContent);
         nonce++;
       } catch (e) {
         console.error('skipping tx', txs[i], e);
