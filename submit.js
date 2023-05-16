@@ -77,7 +77,6 @@ async function main() {
 
       let signedTx = await web3.eth.accounts.signTransaction(tx, PRIVATE_KEY);
       let result;
-      logger.log(`Sent tx with hash: ${signedTx.transactionHash}, waiting for confirmation...`)
       try {
         let signedTx = await web3.eth.accounts.signTransaction(tx, PRIVATE_KEY);
         logger.log(`Sent tx with hash: ${signedTx.transactionHash}, waiting for confirmation...`)
