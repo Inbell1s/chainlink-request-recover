@@ -48,8 +48,7 @@ async function main() {
       }
       paymentTx = ((args[1] / 10 ** 18) * linkPrice)
       costTx = (((gas * gasPrice) / 10 ** 18) * gasTokenPrice)
-      logger.log("Payment: $" + paymentTx)
-      logger.log("Cost: $" + costTx)
+      logger.log("Payment: $" + paymentTx + " | Cost: $" + costTx)
       if (costTx > paymentTx) {
         logger.log(`Won't fulfill the request because it's unprofitable. Saving to file.`)
         // save to unprofitable_requests
@@ -60,7 +59,7 @@ async function main() {
 
       let nonce = await web3.eth.getTransactionCount(account.address);
       gasPrice = await web3.eth.getGasPrice();
-      logger.log('Using nonce:', nonce);
+      logger.log('Fulfilling request using nonce:', nonce);
       const tx = {
         from: web3.eth.defaultAccount,
         value: '0x00',
