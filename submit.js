@@ -34,18 +34,22 @@ async function main() {
   const fileContent = fs.readFileSync('./storage/unfulfilled_requests', 'utf8');
   const lines = fileContent.split('\n').filter(Boolean);
   const txs = lines.map(line => JSON.parse(line.trim().slice(0, -1)));
+  let gas
+  gas = await oracle.methods.fulfillOracleRequest(...txs[0]).estimateGas();
 
   for (let i = 0; i < txs.length; i++) {
     const args = txs[i];
     const data = oracle.methods.fulfillOracleRequest(...args).encodeABI();
 
     try {
-      const gasPrice = await web3.eth.getGasPrice();
-      const gas = await oracle.methods.fulfillOracleRequest(...args).estimateGas();
-      const paymentTx = ((args[1] / 10 ** 18) * linkPrice)
+      let gasPrice, paymentTx
+      if (i % 25 == 0) {
+        gasPrice = await web3.eth.getGasPrice();
+      }
+      paymentTx = ((args[1] / 10 ** 18) * linkPrice)
       costTx = (((gas * gasPrice) / 10 ** 18) * gasTokenPrice)
-      // logger.log("Payment: $" + paymentTx)
-      // logger.log("Cost: $" + costTx)
+      logger.log("Payment: $" + paymentTx)
+      logger.log("Cost: $" + costTx)
       if (costTx > paymentTx) {
         logger.log(`Won't fulfill the request because it's unprofitable. Saving to file.`)
         // save to unprofitable_requests
@@ -55,7 +59,9 @@ async function main() {
       }
 
       let nonce = await web3.eth.getTransactionCount(account.address);
-      logger.log('nonce', nonce);
+      gasPrice = await web3.eth.getGasPrice();
+      gas = await oracle.methods.fulfillOracleRequest(...args).estimateGas();
+      logger.log('Using nonce:', nonce);
       const tx = {
         from: web3.eth.defaultAccount,
         value: '0x00',
@@ -69,7 +75,7 @@ async function main() {
 
       let signedTx = await web3.eth.accounts.signTransaction(tx, PRIVATE_KEY);
       let result;
-
+      logger.log(`Sent tx with hash: ${signedTx.transactionHash}, waiting for confirmation...`)
       try {
         let result = await web3.eth.sendSignedTransaction(signedTx.rawTransaction);
         logger.log(`A new successfully sent tx ${result.transactionHash}`);
