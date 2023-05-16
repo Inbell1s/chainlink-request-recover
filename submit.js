@@ -60,13 +60,12 @@ async function main() {
 
       let nonce = await web3.eth.getTransactionCount(account.address);
       gasPrice = await web3.eth.getGasPrice();
-      gas = await oracle.methods.fulfillOracleRequest(...args).estimateGas();
       logger.log('Using nonce:', nonce);
       const tx = {
         from: web3.eth.defaultAccount,
         value: '0x00',
         gas: numberToHex(gas),
-        gasPrice: toHex(gasPrice),
+        gasPrice: toHex((gasPrice*1.1)),
         to: oracle._address,
         netId: 1,
         data,
