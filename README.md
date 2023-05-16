@@ -18,6 +18,8 @@ Prepare `.env` file
 | BLOCK_INTERVAL | How many blocks to query in for loop |
 | PRIVATE_KEY | Private key (without 0x) to send a request to your Oracle contract - only needed if you wish to fulfill requests |
 | GAS_TOKEN | Ticker of the gas token - only needed if you wish to fulfill requests |
+| SKIP_UNPROFITABLE | Set to false to also fulfill unprofitable requests - only needed if you wish to fulfill requests |
+| GAS_LIMIT_MULTIPLIER | Multiply gas limit - only needed if you experience out of gas errors during fulfilling |
 
 
 2. `npm i`

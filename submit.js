@@ -5,13 +5,16 @@ const fs = require('fs')
 const ORACLE_ABI = require('./oracle.abi.json')
 const createLogger = require('./utils/createLogger');
 const logger = createLogger("fulfill-missing-requests");
-
 const {
   ORACLE_ADDRESS,
   PRIVATE_KEY,
   RPC_URL,
-  GAS_TOKEN
+  GAS_TOKEN,
+  SKIP_UNPROFITABLE
 } = process.env
+
+const GAS_LIMIT_MULTIPLIER = process.env.GAS_LIMIT_MULTIPLIER || 1;
+
 
 const web3 = new Web3(RPC_URL, null, { transactionConfirmationBlocks: 1 })
 const account = web3.eth.accounts.privateKeyToAccount('0x' + PRIVATE_KEY)
@@ -42,6 +45,7 @@ async function main() {
     try {
       let paymentTx
       gas = await oracle.methods.fulfillOracleRequest(...txs[0]).estimateGas();
+      gas = (gas * GAS_LIMIT_MULTIPLIER).toFixed(0)
       if (i % 25 == 0 || i == 0) {
         gasPrice = await web3.eth.getGasPrice();
         logger.log(`Progress: ${i}/${txs.length} (${((i / txs.length) * 100).toFixed(2)}%)`)
@@ -49,7 +53,7 @@ async function main() {
       paymentTx = ((args[1] / 10 ** 18) * linkPrice)
       costTx = ((((gas * gasPrice) * 1.1) / 10 ** 18) * gasTokenPrice)
       logger.log("Payment: $" + paymentTx + " | Cost: $" + costTx)
-      if (costTx > paymentTx) {
+      if (costTx > paymentTx && SKIP_UNPROFITABLE === 'true') {
         logger.log(`Won't fulfill the request because it's unprofitable. Saving to file.`)
         // save to unprofitable_requests
         const unprofitableContent = JSON.stringify(args) + ',\n';
