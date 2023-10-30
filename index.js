@@ -129,11 +129,11 @@ async function findRequests() {
       for (let requestEvent of requestEvents) {
         const isFulfilled = await isFulfilledRequest(requestEvent.requestId)
         if (!isFulfilled) {
-          logger.log(`Request without fulfillment found for job: ${hexToUtf8(requestEvent.jobId)}! Blocknumber is ` + Number(requestEvent.blockNumber))
+          //logger.log(`Request without fulfillment found for job: ${hexToUtf8(requestEvent.jobId)}! Blocknumber is ` + Number(requestEvent.blockNumber))
           const { requestId, payment, callbackAddr, callbackFunctionId, cancelExpiration, jobId } = requestEvent
           const data = FAKE_RESPONSE
           const tx = [requestId, payment, callbackAddr, callbackFunctionId, cancelExpiration, data]
-          const succesfullFulfill = await oracle.methods.fulfillOracleRequest(...tx).call({
+          const succesfullFulfill = await oracle.methods.fulfillOracleRequestShort(requestId, "0x0").call({
             from: NODE_ADDRESS
           })
           if (succesfullFulfill) {
