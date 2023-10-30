@@ -40,11 +40,11 @@ async function main() {
   let gas, gasPrice
   for (let i = 0; i < txs.length; i++) {
     const args = txs[i];
-    const data = oracle.methods.fulfillOracleRequest(...args).encodeABI();
+    const data = oracle.methods.fulfillOracleRequestShort(txs[i][0],numberToHex(0x0)).encodeABI();
 
     try {
       let paymentTx
-      gas = await oracle.methods.fulfillOracleRequest(...txs[0]).estimateGas();
+      gas = await oracle.methods.fulfillOracleRequestShort(txs[i][0],numberToHex(0x0)).estimateGas();
       gas = (gas * GAS_LIMIT_MULTIPLIER).toFixed(0)
       if (i % 25 == 0 || i == 0) {
         gasPrice = await web3.eth.getGasPrice();
